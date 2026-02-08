@@ -7,7 +7,7 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
-const PORT = process.env.PORT || 1234;
+const PORT = 2345;
 const client = new LMStudioClient();
 
 app.get("/health", (req, res) => {
@@ -62,7 +62,30 @@ app.post("/v1/chat/completions", async (req, res) => {
   }
 });
 
+app.post("/v1/embeddings", async (req, res) => {
+  try {
+    const { model, input } = req.body;
+
+    const embedding = await client.embedding({
+      model,
+      input
+    });
+
+    res.json({
+      object: "list",
+      data: [
+        {
+          object: "embedding",
+          embedding: embedding.embedding
+        }
+      ]
+    });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "Failed to generate embedding" });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`LM Studio proxy listening on port ${PORT}`);
 });
-
